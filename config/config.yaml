@@ -1,0 +1,6 @@
+env: local
+port_name: COM3
+broker_address: localhost:9092
+devices:
+  - "/dev/tty02"
+  - "/dev/tty03"
