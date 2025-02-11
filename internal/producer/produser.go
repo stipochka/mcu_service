@@ -7,16 +7,17 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/mcu_service/internal/broker"
 )
 
 type Producer struct {
 	intervalToAsk time.Duration
-	broker.Broker
+	*broker.Broker
 	devices []string
 }
 
-func New(intervalToAsk time.Duration, broker broker.Broker, devices []string) *Producer {
+func New(intervalToAsk time.Duration, broker *broker.Broker, devices []string) *Producer {
 	return &Producer{
 		intervalToAsk: intervalToAsk,
 		Broker:        broker,
@@ -26,9 +27,28 @@ func New(intervalToAsk time.Duration, broker broker.Broker, devices []string) *P
 
 func (p *Producer) Produce(log *slog.Logger) {
 	const op = "producer.Produce"
+	defer p.Broker.Producer.Close()
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		for e := range p.Broker.Producer.Events() {
+			switch ev := e.(type) {
+			case *kafka.Message:
+				if ev.TopicPartition.Error != nil {
+					log.Error(
+						"failed to send kafka message",
+						slog.String("op", op),
+						slog.String("error", ev.TopicPartition.Error.Error()),
+					)
+				}
+
+			}
+
+		}
+
+	}()
 
 	ticker := time.NewTicker(p.intervalToAsk)
 

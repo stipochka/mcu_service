@@ -25,7 +25,10 @@ func main() {
 		return
 	}
 
-	producer := producer.New(cfg.IntervalToAsk, *broker, cfg.Devices)
+	log.Info("initialize kafka producer")
+	defer broker.Producer.Close()
+
+	producer := producer.New(cfg.IntervalToAsk, broker, cfg.Devices)
 
 	producer.Produce(log)
 }
