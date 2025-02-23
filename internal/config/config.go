@@ -6,14 +6,15 @@ import (
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/mcu_service/internal/models"
 )
 
 type Config struct {
-	Env           string        `yaml:"env" env-default:"local"`
-	PortName      string        `yaml:"port_name" env-required:"true"`
-	IntervalToAsk time.Duration `yaml:"interval_to_ask" env-default:"60s"`
-	BrokerAddress string        `yaml:"broker_address" env-required:"true"`
-	Devices       []string      `yaml:"devices" env-required:"true"`
+	Env           string          `yaml:"env" env-default:"local"`
+	PortName      string          `yaml:"port_name" env-required:"true"`
+	IntervalToAsk time.Duration   `yaml:"interval_to_ask" env-default:"60s"`
+	BrokerAddress string          `yaml:"broker_address" env-required:"true"`
+	Devices       []models.Record `yaml:"devices" env-required:"true"`
 }
 
 func MustLoad() *Config {

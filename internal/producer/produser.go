@@ -1,6 +1,7 @@
 package producer
 
 import (
+	"encoding/json"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -9,15 +10,16 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/mcu_service/internal/broker"
+	"github.com/mcu_service/internal/models"
 )
 
 type Producer struct {
 	intervalToAsk time.Duration
 	*broker.Broker
-	devices []string
+	devices []models.Record
 }
 
-func New(intervalToAsk time.Duration, broker *broker.Broker, devices []string) *Producer {
+func New(intervalToAsk time.Duration, broker *broker.Broker, devices []models.Record) *Producer {
 	return &Producer{
 		intervalToAsk: intervalToAsk,
 		Broker:        broker,
@@ -88,5 +90,16 @@ func (p *Producer) Produce(log *slog.Logger) {
 }
 
 func (p *Producer) getData() ([]string, error) {
-	return p.devices, nil
+	data := []string{}
+
+	for _, val := range p.devices {
+		recordBytes, err := json.Marshal(val)
+		if err != nil {
+			return []string{}, err
+		}
+
+		data = append(data, string(recordBytes))
+	}
+
+	return data, nil
 }

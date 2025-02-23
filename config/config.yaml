@@ -2,5 +2,7 @@ env: local
 port_name: COM3
 broker_address: kafka:9092
 devices:
-  - "/dev/tty02"
-  - "/dev/tty03"
+  - id: 1
+    data: "adsas"
+  - id: 2
+    data: "dasas"
