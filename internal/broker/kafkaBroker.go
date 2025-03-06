@@ -6,19 +6,19 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
 
-type Broker struct {
+type KafkaBroker struct {
 	Producer kafka.Producer
 	Topic    string
 }
 
-func New(address string, topic string) (*Broker, error) {
+func NewKafkaBroker(address string, topic string) (*KafkaBroker, error) {
 	producer, err := kafka.NewProducer(&kafka.ConfigMap{
 		"bootstrap.servers": address,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &Broker{
+	return &KafkaBroker{
 		Producer: *producer,
 		Topic:    topic,
 	}, err
@@ -27,7 +27,7 @@ func New(address string, topic string) (*Broker, error) {
 //docker exec -it 07be40d28c27 kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic device-data --from-beginning
 //docker exec -it cb622cc33eb7 kafka-topics.sh --bootstrap-server localhost:9092
 
-func (b *Broker) WriteData(data string, log *slog.Logger) error {
+func (b *KafkaBroker) WriteData(data string, log *slog.Logger) error {
 	const op = "broker.WriteData"
 
 	message := &kafka.Message{

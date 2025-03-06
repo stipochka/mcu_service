@@ -13,11 +13,16 @@ WORKDIR /app/cmd/mcu_service
 
 RUN go build -o mcu_service
 
+WORKDIR /app/cmd/pseudoterminal
+
+RUN go build -o pseudoterminal 
+
 FROM debian:bookworm-slim 
 
 WORKDIR /app
 
 COPY --from=builder /app/cmd/mcu_service .
+COPY --from=builder /app/cmd/pseudoterminal .
 COPY --from=builder /app/config .
 
 # Add this to your Dockerfile to install wait-for-it

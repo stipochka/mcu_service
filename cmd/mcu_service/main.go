@@ -19,16 +19,15 @@ func main() {
 		slog.String("env", cfg.Env),
 	)
 
-	broker, err := broker.New(cfg.BrokerAddress, "device-data")
+	broker, err := broker.NewKafkaBroker(cfg.BrokerAddress, "device-data")
 	if err != nil {
 		log.Error("failed to initialize broker", slog.String("error", err.Error()))
 		return
 	}
 
 	log.Info("initialize kafka producer")
-	defer broker.Producer.Close()
 
-	producer := producer.New(cfg.IntervalToAsk, broker, cfg.Devices)
+	producer := producer.NewKafkaProducer(cfg.IntervalToAsk, broker, cfg.Devices)
 
 	producer.Produce(log)
 }

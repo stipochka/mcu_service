@@ -21,7 +21,7 @@ func MustLoad() *Config {
 	configPath := os.Getenv("CONFIG_PATH")
 
 	if configPath == "" {
-		log.Fatal("Config_PATH is not set")
+		log.Fatal("CONFIG_PATH is not set")
 	}
 
 	if _, err := os.Stat(configPath); err != nil {
