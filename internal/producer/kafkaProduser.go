@@ -136,7 +136,6 @@ func (p *kafkaProducer) askMcu(file *os.File) ([]string, error) {
 func parseData(data string) (string, error) {
 	const op = "producer.parseData"
 
-	var record models.Record
 	valuesFromDevice := strings.Split(data, ";")
 
 	if len(valuesFromDevice) < 2 {
@@ -147,8 +146,10 @@ func parseData(data string) (string, error) {
 		return "", fmt.Errorf("%s %s", op, err.Error())
 	}
 
-	record.ID = recID
-	record.Data = valuesFromDevice[1]
+	record, err := ConvertResponseToRecord(recID, valuesFromDevice[1])
+	if err != nil {
+		return "", fmt.Errorf("%s %s", op, err.Error())
+	}
 
 	marshallResp, err := json.Marshal(record)
 	if err != nil {
@@ -156,6 +157,57 @@ func parseData(data string) (string, error) {
 	}
 
 	return string(marshallResp), nil
+}
+
+func ConvertResponseToRecord(recordID int, recordData string) (*models.Record, error) {
+	const op = "producer.ConvertResponseToRecord"
+	var record models.Record
+
+	record.ID = recordID
+	record.Status = "ON"
+	record.PollingPeriod = 600
+	record.Temperature = 5000
+	record.LampStatus = "OFF"
+	record.Voltage = 500
+
+	var thresholds models.Thresholds
+	thresholds.Humidity = make([]models.SensorData, 1)
+	thresholds.Temperature = make([]models.SensorData, 1)
+	thresholds.Voltage = []models.SensorData{
+		models.SensorData{
+			Value:         700,
+			PollingPeriod: 500,
+		},
+	}
+
+	splitedValues := strings.Split(recordData, ",")
+
+	tempValue := strings.Split(splitedValues[0], ":")[1]
+	tempValueInt, err := strconv.Atoi(tempValue)
+	if err != nil {
+		return nil, fmt.Errorf("%s %s", op, err.Error())
+	}
+
+	humidityValue := strings.Split(splitedValues[1], ":")[1]
+	humidityValueInt, err := strconv.Atoi(humidityValue)
+	if err != nil {
+		return nil, fmt.Errorf("%s %s", op, err.Error())
+	}
+
+	thresholds.Temperature[0] = models.SensorData{
+		Value:         tempValueInt,
+		PollingPeriod: 500,
+	}
+
+	thresholds.Humidity[0] = models.SensorData{
+		Value:         humidityValueInt,
+		PollingPeriod: 500,
+	}
+
+	record.Thresholds = thresholds
+
+	return &record, nil
+
 }
 
 // send prototype of request
